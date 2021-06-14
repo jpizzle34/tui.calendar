@@ -1,3 +1,5 @@
+/* eslint-disable comma-dangle */
+/* eslint-disable space-before-function-paren */
 /**
  * @fileoverview Core methods for dragging actions
  * @author NHN FE Development Lab <dl_javascript@nhn.com>
@@ -22,14 +24,14 @@ var timeCore = {
      * @param {number} y - Y coordinate to calculate hour ratio.
      * @returns {number} hour index ratio value.
      */
-    _calcGridYIndex: function(baseMil, height, y) {
+    _calcGridYIndex: function (baseMil, height, y) {
         // get ratio from right expression > point.y : x = session.height : baseMil
         // and convert milliseconds value to hours.
         var result = datetime.millisecondsTo('hour', (y * baseMil) / height),
             floored = result | 0,
-            nearest = common.nearest(result - floored, [0, 1]);
+            nearest = common.nearest(result - floored, [0.25, 0.5, 0.75, 1]);
 
-        return floored + (nearest ? 0.5 : 0);
+        return floored + nearest;
     },
 
     /**
@@ -37,7 +39,7 @@ var timeCore = {
      * @param {Time} timeView - Instance of time view.
      * @returns {function} - Function that return event data from mouse event.
      */
-    _retriveScheduleData: function(timeView) {
+    _retriveScheduleData: function (timeView) {
         var self = this,
             container = timeView.container,
             options = timeView.options,
@@ -51,7 +53,7 @@ var timeCore = {
          * @param {object} [extend] - object to extend event data before return.
          * @returns {object} - common event data for time
          */
-        return function(mouseEvent, extend) {
+        return function (mouseEvent, extend) {
             var mouseY = Point.n(domevent.getMousePosition(mouseEvent, container)).y,
                 gridY = common.ratio(viewHeight, hourLength, mouseY),
                 timeY = new TZDate(viewTime).addMinutes(datetime.minutesFromHours(gridY)),
@@ -60,17 +62,20 @@ var timeCore = {
                     datetime.minutesFromHours(nearestGridY + options.hourStart)
                 );
 
-            return util.extend({
-                target: domevent.getEventTarget(mouseEvent),
-                relatedView: timeView,
-                originEvent: mouseEvent,
-                mouseY: mouseY,
-                gridY: gridY,
-                timeY: timeY,
-                nearestGridY: nearestGridY,
-                nearestGridTimeY: nearestGridTimeY,
-                triggerEvent: mouseEvent.type
-            }, extend);
+            return util.extend(
+                {
+                    target: domevent.getEventTarget(mouseEvent),
+                    relatedView: timeView,
+                    originEvent: mouseEvent,
+                    mouseY: mouseY,
+                    gridY: gridY,
+                    timeY: timeY,
+                    nearestGridY: nearestGridY,
+                    nearestGridTimeY: nearestGridTimeY,
+                    triggerEvent: mouseEvent.type,
+                },
+                extend
+            );
         };
     },
 
@@ -82,7 +87,7 @@ var timeCore = {
      * @param {number} hourStart Can limit of render hour start.
      * @returns {object} - common event data for time from mouse event.
      */
-    _retriveScheduleDataFromDate: function(timeView, startDate, endDate, hourStart) {
+    _retriveScheduleDataFromDate: function (timeView, startDate, endDate, hourStart) {
         var viewTime = timeView.getDate();
         var gridY, timeY, nearestGridY, nearestGridTimeY, nearestGridEndY, nearestGridEndTimeY;
 
@@ -91,7 +96,9 @@ var timeCore = {
         nearestGridY = gridY;
         nearestGridTimeY = new TZDate(viewTime).addMinutes(datetime.minutesFromHours(nearestGridY));
         nearestGridEndY = endDate.getHours() - hourStart + getNearestHour(endDate.getMinutes());
-        nearestGridEndTimeY = new TZDate(viewTime).addMinutes(datetime.minutesFromHours(nearestGridEndY));
+        nearestGridEndTimeY = new TZDate(viewTime).addMinutes(
+            datetime.minutesFromHours(nearestGridEndY)
+        );
 
         return {
             target: timeView,
@@ -103,7 +110,7 @@ var timeCore = {
             nearestGridEndY: nearestGridEndY,
             nearestGridEndTimeY: nearestGridEndTimeY,
             triggerEvent: 'manual',
-            hourStart: hourStart
+            hourStart: hourStart,
         };
     },
 
@@ -111,16 +118,16 @@ var timeCore = {
      * Mixin method.
      * @param {(TimeCreation|TimeMove)} obj - Constructor functions
      */
-    mixin: function(obj) {
+    mixin: function (obj) {
         var proto = obj.prototype;
-        util.forEach(timeCore, function(method, methodName) {
+        util.forEach(timeCore, function (method, methodName) {
             if (methodName === 'mixin') {
                 return;
             }
 
             proto[methodName] = method;
         });
-    }
+    },
 };
 
 /**
